@@ -2,10 +2,11 @@ package eureka
 
 import (
 	"context"
-	"github.com/devopsfaith/krakend/sd"
 	"github.com/devopsfaith/krakend/config"
+	"github.com/devopsfaith/krakend/sd"
 	"sync"
 	"time"
+	"fmt"
 )
 
 var (
@@ -70,15 +71,24 @@ func (s Subscriber) Hosts() ([]string, error) {
 func (s *Subscriber) loop() {
 
 	for {
-		time.Sleep(30 * time.Second)
-		instances, err := s.client.GetEntries(s.prefix)
-		if err != nil {
-			continue
+		select {
+		case <-s.ctx.Done():
+			fmt.Println("DONE LOOP")
+			return
 		}
-		s.mutex.Lock()
-		*(s.cache) = sd.FixedSubscriber(instances)
-		s.mutex.Unlock()
+
+		go func() {
+			fmt.Println("LOOP")
+			time.Sleep(30 * time.Second)
+			instances, err := s.client.GetEntries(s.prefix)
+			if err != nil {
+				// handling
+			}
+			s.mutex.Lock()
+			*(s.cache) = sd.FixedSubscriber(instances)
+			s.mutex.Unlock()
+		}()
+
 	}
 
 }
-
