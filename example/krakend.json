@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "name": "My lovely gateway",
+  "port": 8080,
+  "cache_ttl": "3600s",
+  "timeout": "3s",
+  "endpoints": [
+    {
+      "endpoint": "/github/{user}",
+      "backend": [
+        {
+          "host": [
+            "MS-IJ--COVER-LETTER"
+          ],
+          "url_pattern": "/github/{user}",
+          "sd": "eureka"
+        }
+      ]
+    }
+  ],
+  "extra_config": {
+    "github_com/joaoqalves/krakend-eureka": {
+      "machines": [
+        "http://192.168.99.100:10000/eureka/v2"
+      ]
+    }
+  }
+}
