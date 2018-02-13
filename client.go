@@ -2,12 +2,16 @@ package eureka
 
 import (
 	"context"
-	"github.com/ArthurHlt/go-eureka-client/eureka"
 	"strconv"
 	"time"
+
+	"github.com/ArthurHlt/go-eureka-client/eureka"
 )
 
-const defaultTTL = 5 * time.Second
+const (
+	defaultTTL = 5 * time.Second
+	heartBeat  = 10 * time.Second
+)
 
 type Client interface {
 	GetEntries(appId string) ([]string, error)
@@ -67,29 +71,15 @@ func (c *client) Register(appId string, ip string, port int) error {
 }
 
 func (c *client) loop(instanceInfo *eureka.InstanceInfo) {
-
-	ch := make(chan bool)
-	go c.sendHeartBeat(instanceInfo, ch)
-
+	t := time.NewTicker(heartBeat)
 	for {
 		select {
-		case <-ch:
+		case <-t.C:
+			c.eurekaClient.SendHeartbeat(instanceInfo.App, instanceInfo.HostName)
 		case <-c.ctx.Done():
 			c.eurekaClient.UnregisterInstance(instanceInfo.App, instanceInfo.HostName)
 			return
 		}
 
-	}
-}
-
-func (c *client) sendHeartBeat(instanceInfo *eureka.InstanceInfo, ok chan bool) {
-	for {
-		err := c.eurekaClient.SendHeartbeat(instanceInfo.App, instanceInfo.HostName)
-		if err != nil {
-			ok <- false
-		}
-		ok <- true
-
-		time.Sleep(10 * time.Second)
 	}
 }
