@@ -46,7 +46,9 @@ func (c *client) GetEntries(appId string) ([]string, error) {
 	entries := make([]string, len(resp.Instances))
 
 	for i, instance := range resp.Instances {
-		entries[i] = instance.HomePageUrl
+		if instance.Status == "UP" {
+			entries[i] = instance.HomePageUrl
+		}
 	}
 
 	if err != nil {
